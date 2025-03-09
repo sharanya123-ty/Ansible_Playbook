@@ -15,20 +15,19 @@
         name: software-properties-common
         state: present
 
-    - name: Add Grafana GPG Key
-      get_url:
-        url: https://packages.grafana.com/gpg.key
-        dest: /usr/share/keyrings/grafana.gpg
+    - name: Add Grafana GPG Key (Correct Method)
+      shell: wget -q -O - https://packages.grafana.com/gpg.key | gpg --dearmor -o /usr/share/keyrings/grafana.gpg
 
-    - name: Add Grafana Repository
-      lineinfile:
-        path: /etc/apt/sources.list.d/grafana.list
-        line: "deb [signed-by=/usr/share/keyrings/grafana.gpg] https://packages.grafana.com/oss/deb stable main"
-        create: yes
+    - name: Add Grafana Repository with Signed Key
+      shell: echo "deb [signed-by=/usr/share/keyrings/grafana.gpg] https://packages.grafana.com/oss/deb stable main" | tee /etc/apt/sources.list.d/grafana.list
 
     - name: Update Package Lists
       apt:
         update_cache: yes
+
+    - name: Upgrade Packages (optional but recommended)
+      apt:
+        upgrade: dist
 
     - name: Install Grafana
       apt:
