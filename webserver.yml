@@ -1,8 +1,7 @@
 ---
-- name: Configure Web Server
-  hosts: localhost
-  connection: local
+- name: Configure Webserver
+  hosts: all
   become: yes
-  
+
   roles:
     - webserver
