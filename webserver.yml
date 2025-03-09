@@ -1,54 +1,69 @@
 ---
-# Apache2 deployment configuration for Hello Akshatha page
-apache_config:
-  web_server: apache2
-  platform: ubuntu
-  
-# Server configuration 
-server_settings:
-  name: hello-akshatha
-  port: 80
-  document_root: /var/www/html
-  
-# Content configuration
-web_content:
-  index_file: index.html
-  html_content: |
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Hello Akshatha</title>
-      <style>
-        body {
-          font-family: Arial, sans-serif;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          margin: 0;
-          background-color: #f0f8ff;
-        }
-        h1 {
-          font-size: 48px;
-          color: #333;
-          text-align: center;
-          padding: 20px;
-          border-radius: 10px;
-          background-color: white;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-      </style>
-    </head>
-    <body>
-      <h1>Hello Akshatha!</h1>
-    </body>
-    </html>
+# Grafana Installation Configuration
+grafana:
+  version: latest
+  installation_method: repository
 
-# Deployment steps as variables
-deployment_steps:
-  install: "apt-get update && apt-get install -y apache2"
-  enable_modules: "a2enmod rewrite"
-  create_index: true
-  set_permissions: "chown -R www-data:www-data /var/www/html"
-  restart_service: "systemctl restart apache2"
-  enable_service: "systemctl enable apache2"
+# System configuration
+system:
+  os: ubuntu
+  update_before_install: true
+  create_service: true
+
+# Grafana configuration
+configuration:
+  http_port: 3000
+  domain: localhost
+  admin_user: admin
+  admin_password: admin
+  allow_sign_up: false
+  auth_anonymous_enabled: false
+
+# Installation steps
+installation:
+  # Add Grafana GPG key
+  add_gpg_key:
+    command: wget -q -O - https://packages.grafana.com/gpg.key | apt-key add -
+
+  # Add Grafana repository
+  add_repository:
+    command: add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+
+  # Update package lists
+  update_packages:
+    command: apt-get update
+
+  # Install Grafana
+  install_grafana:
+    command: apt-get install -y grafana
+
+  # Start Grafana service
+  start_service:
+    command: systemctl start grafana-server
+
+  # Enable Grafana service to start on boot
+  enable_service:
+    command: systemctl enable grafana-server
+
+  # Check Grafana service status
+  check_status:
+    command: systemctl status grafana-server
+
+# Post-installation configuration
+post_installation:
+  # Wait for service to fully start
+  wait_for_service:
+    command: sleep 10
+
+  # Verify Grafana is accessible
+  verify_installation:
+    command: curl -I http://localhost:3000
+
+  # Display access information
+  display_info:
+    message: |
+      Grafana has been installed successfully.
+      Access Grafana at: http://localhost:3000
+      Default username: admin
+      Default password: admin
+      Please change the default password after first login.
