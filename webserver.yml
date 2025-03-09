@@ -32,13 +32,13 @@
 
     - name: Deploy a Simple HTML Page (Apache)
       copy:
-        content: "<h1>Hi Akshatha, Welcome to devops!</h1>"
+        content: "<h1>Hi all, Welcome to devops!</h1>"
         dest: "/var/www/html/index.html"
       when: ansible_os_family == "Debian"
 
     - name: Deploy a Simple HTML Page (Nginx)
       copy:
-        content: "<h1>Hi Akshatha, Welcome to devops </h1>"
+        content: "<h1>Hi all, Welcome to devops </h1>"
         dest: "/usr/share/nginx/html/index.html"
       when: ansible_os_family == "RedHat"
 
