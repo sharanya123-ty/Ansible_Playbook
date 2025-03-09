@@ -1,17 +1,17 @@
 ---
 # Apache2 deployment configuration for Hello Akshatha page
-deployment:
+apache_config:
   web_server: apache2
   platform: ubuntu
   
-# Server configuration
-server:
+# Server configuration 
+server_settings:
   name: hello-akshatha
   port: 80
   document_root: /var/www/html
   
 # Content configuration
-content:
+web_content:
   index_file: index.html
   html_content: |
     <!DOCTYPE html>
@@ -44,24 +44,11 @@ content:
     </body>
     </html>
 
-# Deployment steps
-steps:
-  - name: Install Apache2
-    command: apt-get update && apt-get install -y apache2
-  
-  - name: Enable required modules
-    command: a2enmod rewrite
-  
-  - name: Create index file
-    file: 
-      path: /var/www/html/index.html
-      content: "{{ content.html_content }}"
-  
-  - name: Configure permissions
-    command: chown -R www-data:www-data /var/www/html
-  
-  - name: Restart Apache2
-    command: systemctl restart apache2
-  
-  - name: Enable on boot
-    command: systemctl enable apache2
+# Deployment steps as variables
+deployment_steps:
+  install: "apt-get update && apt-get install -y apache2"
+  enable_modules: "a2enmod rewrite"
+  create_index: true
+  set_permissions: "chown -R www-data:www-data /var/www/html"
+  restart_service: "systemctl restart apache2"
+  enable_service: "systemctl enable apache2"
