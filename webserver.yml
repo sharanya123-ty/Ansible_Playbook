@@ -1,51 +1,25 @@
 ---
-- name: Install and Configure Grafana
-  hosts: all
-  become: yes  # Run as sudo
-  vars:
-    grafana_version: latest
-    http_port: 3000
-    domain: localhost
-    admin_user: admin
-    admin_password: admin
+- name: Add Grafana GPG key
+  apt_key:
+    url: https://packages.grafana.com/gpg.key
+    state: present
 
-  tasks:
-    - name: Install dependencies
-      apt:
-        name: software-properties-common
-        state: present
+- name: Add Grafana APT repository
+  apt_repository:
+    repo: "deb https://packages.grafana.com/oss/deb stable main"
+    state: present
+    update_cache: yes
 
-    - name: Add Grafana GPG Key (Correct Method)
-      shell: wget -q -O - https://packages.grafana.com/gpg.key | gpg --dearmor -o /usr/share/keyrings/grafana.gpg
+- name: Install Grafana
+  apt:
+    name: grafana
+    state: present
+    update_cache: yes
+  become: true
 
-    - name: Add Grafana Repository with Signed Key
-      shell: echo "deb [signed-by=/usr/share/keyrings/grafana.gpg] https://packages.grafana.com/oss/deb stable main" | tee /etc/apt/sources.list.d/grafana.list
-
-    - name: Update Package Lists
-      apt:
-        update_cache: yes
-
-    - name: Upgrade Packages (optional but recommended)
-      apt:
-        upgrade: dist
-
-    - name: Install Grafana
-      apt:
-        name: grafana
-        state: present
-
-    - name: Start and Enable Grafana Service
-      systemd:
-        name: grafana-server
-        enabled: yes
-        state: started
-
-    - name: Wait for Grafana to Start
-      pause:
-        seconds: 10
-
-    - name: Verify Grafana is Running
-      uri:
-        url: "http://localhost:{{ http_port }}"
-        status_code: 200
-      ignore_errors: yes
+- name: Start Grafana service
+  service:
+    name: grafana-server
+    state: started
+    enabled: true
+  become: true
