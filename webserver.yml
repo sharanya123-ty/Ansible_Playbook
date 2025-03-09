@@ -38,7 +38,7 @@
 
     - name: Deploy a Simple HTML Page (Nginx)
       copy:
-        content: "<h1>Welcome to My Nginx Server!</h1>"
+        content: "<h1>Hi Akshatha, Welcome to devops </h1>"
         dest: "/usr/share/nginx/html/index.html"
       when: ansible_os_family == "RedHat"
 
