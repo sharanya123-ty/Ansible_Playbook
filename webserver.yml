@@ -1,76 +1,52 @@
-# Grafana Installation Configuration
-grafana:
-  version: latest
-  installation_method: repository
+---
+- name: Install and Configure Grafana
+  hosts: all
+  become: yes  # Run as sudo
+  vars:
+    grafana_version: latest
+    http_port: 3000
+    domain: localhost
+    admin_user: admin
+    admin_password: admin
 
-# System configuration
-system:
-  os: ubuntu
-  update_before_install: true
-  create_service: true
+  tasks:
+    - name: Install dependencies
+      apt:
+        name: software-properties-common
+        state: present
 
-# Grafana configuration
-configuration:
-  http_port: 3000
-  domain: localhost
-  admin_user: admin
-  admin_password: admin
-  allow_sign_up: false
-  auth_anonymous_enabled: false
+    - name: Add Grafana GPG Key
+      get_url:
+        url: https://packages.grafana.com/gpg.key
+        dest: /usr/share/keyrings/grafana.gpg
 
-# Installation steps
-installation:
-  # Install dependencies
-  install_dependencies:
-    command: apt-get install -y software-properties-common
+    - name: Add Grafana Repository
+      lineinfile:
+        path: /etc/apt/sources.list.d/grafana.list
+        line: "deb [signed-by=/usr/share/keyrings/grafana.gpg] https://packages.grafana.com/oss/deb stable main"
+        create: yes
 
-  # Add Grafana GPG key (fixed for modern Ubuntu versions)
-  add_gpg_key:
-    command: wget -q -O /usr/share/keyrings/grafana.gpg https://packages.grafana.com/gpg.key
+    - name: Update Package Lists
+      apt:
+        update_cache: yes
 
-  # Add Grafana repository (updated to use signed-by)
-  add_repository:
-    command: echo "deb [signed-by=/usr/share/keyrings/grafana.gpg] https://packages.grafana.com/oss/deb stable main" | tee /etc/apt/sources.list.d/grafana.list > /dev/null
+    - name: Install Grafana
+      apt:
+        name: grafana
+        state: present
 
-  # Update package lists
-  update_packages:
-    command: apt-get update
+    - name: Start and Enable Grafana Service
+      systemd:
+        name: grafana-server
+        enabled: yes
+        state: started
 
-  # Upgrade packages (optional but recommended)
-  upgrade_packages:
-    command: apt-get upgrade -y
+    - name: Wait for Grafana to Start
+      pause:
+        seconds: 10
 
-  # Install Grafana
-  install_grafana:
-    command: apt-get install -y grafana
-
-  # Start Grafana service
-  start_service:
-    command: systemctl start grafana-server
-
-  # Enable Grafana service to start on boot
-  enable_service:
-    command: systemctl enable grafana-server
-
-  # Check Grafana service status (fixed to avoid interactive mode)
-  check_status:
-    command: systemctl is-active --quiet grafana-server && echo "Grafana is running" || echo "Grafana is not running"
-
-# Post-installation configuration
-post_installation:
-  # Wait for service to fully start
-  wait_for_service:
-    command: sleep 10
-
-  # Verify Grafana is accessible
-  verify_installation:
-    command: curl -I http://localhost:3000
-
-  # Display access information
-  display_info:
-    message: |
-      Grafana has been installed successfully.
-      Access Grafana at: http://localhost:3000
-      Default username: admin
-      Default password: admin
-      Please change the default password after first login.
+    - name: Verify Grafana is Running
+      uri:
+        url: "http://localhost:{{ http_port }}"
+        status_code: 200
+      ignore_errors: yes
